@@ -46,15 +46,7 @@ Install dependencies
 
 npm install
 Environment Configuration
-Create a .env file in the root directory:
 
-env
-NODE_ENV=development
-PORT=3000
-MONGODB_URI=mongodb+srv://your_username:your_password@cluster.mongodb.net/taskflow
-JWT_SECRET=your_super_secret_jwt_key_here
-JWT_EXPIRES_IN=30d
-Start the application
 
 
 # Development mode
@@ -139,7 +131,7 @@ Test endpoints directly from the documentation
 Using curl or Postman
 
 # Register a new user
-curl -X POST https://your-app.onrender.com/auth/register \
+curl -X POST https://cse341-taskflow-api.onrender.com/auth/register \
   -H "Content-Type: application/json" \
   -d '{"name":"John Doe","email":"john@example.com","password":"password123"}'
 
@@ -149,7 +141,7 @@ curl -X POST https://your-app.onrender.com/auth/login \
   -d '{"email":"john@example.com","password":"password123"}'
 
 # Create a task (with JWT token)
-curl -X POST https://your-app.onrender.com/tasks \
+curl -X POST https://cse341-taskflow-api.onrender.com/tasks \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
   -d '{"title":"Complete project","description":"Finish the API documentation","status":"pending"}'
@@ -171,6 +163,9 @@ cors: Cross-origin resource sharing
 
 Development
 nodemon: Development server with auto-restart
+
+# Video
+https://youtu.be/82-ze4tENMA
 
 🤝 Contributing
 Fork the repository

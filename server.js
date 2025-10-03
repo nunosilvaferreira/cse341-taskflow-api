@@ -51,9 +51,14 @@ mongoose.connect(process.env.MONGODB_URI, {
 })
   .then(() => {
     console.log('✅ Connected to MongoDB');
-    app.listen(PORT, '0.0.0.0', () => {
+    app.listen(PORT, () => {
       console.log(`🚀 Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
       console.log(`🌐 Swagger docs available at http://localhost:${PORT}/api-docs`);
+
+      // Extra info when running on Render
+      if (process.env.RENDER_EXTERNAL_HOSTNAME) {
+        console.log(`🔗 Public URL: https://${process.env.RENDER_EXTERNAL_HOSTNAME}`);
+      }
     });
   })
   .catch(err => {

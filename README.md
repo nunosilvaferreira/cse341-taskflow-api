@@ -1,192 +1,173 @@
 # TaskFlow API
 
-A robust and secure RESTful API for personal task management built with Node.js, Express, and MongoDB. This API provides full CRUD operations for tasks with JWT authentication and comprehensive documentation.
+A personal task management REST API built with **Node.js, Express, MongoDB, and JWT authentication**.  
+This project was developed for **CSE 341 – Backend Development** at BYU-Idaho.
+
+---
 
 ## 🚀 Features
 
-- **User Authentication**: JWT-based registration and login system
-- **Task Management**: Full CRUD operations for tasks
-- **Security**: Password hashing with bcrypt and protected routes
-- **Documentation**: Interactive Swagger/OpenAPI documentation
-- **Error Handling**: Comprehensive error handling with appropriate HTTP status codes
-- **Validation**: Input validation and data sanitization
+- **Authentication (JWT)**
+  - Register and login users
+  - Protected routes with Bearer tokens
+- **Four collections with full CRUD**
+  - Users
+  - Tasks
+  - Projects
+  - Notes
+- **Validation**
+  - Required fields for POST and PUT requests
+  - Returns `400 Bad Request` for invalid data
+- **Swagger Documentation**
+  - API documented and browsable at `/api-docs`
+- **Testing**
+  - Unit tests with **Jest**, **Supertest**, and **MongoDB Memory Server**
+  - Covers GET and GET All routes for all collections
+- **Deployment**
+  - Hosted on **Render**
+  - Swagger and endpoints accessible online
 
-## 📋 API Endpoints
+---
 
-### Authentication
-| Method | Endpoint | Description | Authentication |
-|--------|----------|-------------|----------------|
-| POST | `/auth/register` | Register a new user | Public |
-| POST | `/auth/login` | Login user | Public |
+## 📂 Project Structure
 
-### Tasks
-| Method | Endpoint | Description | Authentication |
-|--------|----------|-------------|----------------|
-| GET | `/tasks` | Get all tasks for authenticated user | Private |
-| POST | `/tasks` | Create a new task | Private |
-| GET | `/tasks/:id` | Get a single task by ID | Private |
-| PUT | `/tasks/:id` | Update a task | Private |
-| DELETE | `/tasks/:id` | Delete a task | Private |
+├── config/ # Database configuration
+├── controllers/ # Request handlers (auth, tasks, projects, notes)
+├── middleware/ # Auth and error handling
+├── models/ # Mongoose schemas (User, Task, Project, Note)
+├── routes/ # API routes
+├── swagger/ # Swagger API documentation
+├── tests/ # Unit tests
+├── server.js # Application entry point
+└── package.json
 
-## 🛠️ Installation
+yaml
+Copiar código
 
-### Prerequisites
-- Node.js (v14 or higher)
-- MongoDB Atlas account or local MongoDB instance
-- npm or yarn
+---
 
-### Setup Instructions
+## ⚙️ Setup & Installation
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/yourusername/taskflow-api.git
-   cd taskflow-api
-Install dependencies
-
-
+### 1. Clone the repository
+```bash
+git clone https://github.com/your-username/taskflow-api.git
+cd taskflow-api
+2. Install dependencies
+bash
+Copiar código
 npm install
-Environment Configuration
+3. Environment variables
+Create a .env file in the root directory with the following:
 
+ini
+Copiar código
+MONGODB_URI=your-mongodb-connection-string
+JWT_SECRET=your-secret-key
+JWT_EXPIRES_IN=30d
+NODE_ENV=development
+PORT=3000
+4. Start the server
+For development:
 
-
-# Development mode
+bash
+Copiar código
 npm run dev
+For production:
 
-# Production mode
+bash
+Copiar código
 npm start
-📚 API Documentation
-Once the server is running, access the interactive API documentation at:
+The API will run at:
 
-text
+arduino
+Copiar código
+http://localhost:3000
+Swagger docs:
+
+bash
+Copiar código
 http://localhost:3000/api-docs
-The documentation provides:
+🔑 Authentication
+Register a new user:
 
-Complete endpoint descriptions
+http
+Copiar código
+POST /auth/register
+Login to receive a JWT:
 
-Request/response schemas
+http
+Copiar código
+POST /auth/login
+Use the token for protected routes:
 
-Interactive testing capability
+makefile
+Copiar código
+Authorization: Bearer <your-token>
+📌 API Endpoints
+Authentication
+POST /auth/register → Register a user
 
-Authentication examples
+POST /auth/login → Login and receive JWT
 
-🗄️ Database Schema
-User Model
-javascript
-{
-  name: String,
-  email: String (unique),
-  password: String (hashed),
-  createdAt: Date,
-  updatedAt: Date
-}
-Task Model
-javascript
-{
-  title: String,
-  description: String,
-  dueDate: Date,
-  status: String (enum: ['pending', 'in-progress', 'completed']),
-  category: String,
-  userId: ObjectId (ref: 'User'),
-  createdAt: Date,
-  updatedAt: Date
-}
-🔐 Authentication
-The API uses JWT (JSON Web Tokens) for authentication. To access protected routes:
+Tasks
+GET /tasks → Get all tasks (protected)
 
-Register a new user or login to receive a JWT token
+GET /tasks/:id → Get a single task (protected)
 
+POST /tasks → Create a new task (protected)
 
-🚢 Deployment
-Deploy to Render
-Push your code to GitHub
+PUT /tasks/:id → Update a task (protected)
 
-Create a new Web Service on Render
+DELETE /tasks/:id → Delete a task (protected)
 
-Connect your GitHub repository
+Projects
+GET /projects → Get all projects (protected)
 
-Add environment variables in Render dashboard:
+GET /projects/:id → Get a single project (protected)
 
-MONGODB_URI
+POST /projects → Create a new project (protected)
 
-JWT_SECRET
+PUT /projects/:id → Update a project (protected)
 
-NODE_ENV=production
+DELETE /projects/:id → Delete a project (protected)
 
-Deploy
+Notes
+GET /notes → Get all notes (protected)
 
-Environment Variables for Production
+GET /notes/:id → Get a single note (protected)
 
-NODE_ENV=production
-MONGODB_URI=your_mongodb_atlas_connection_string
-JWT_SECRET=your_production_jwt_secret
-🧪 Testing the API
-Using Swagger UI
-Navigate to /api-docs on your deployed application
+POST /notes → Create a new note (protected)
 
-Use the "Authorize" button to set your JWT token
+PUT /notes/:id → Update a note (protected)
 
-Test endpoints directly from the documentation
+DELETE /notes/:id → Delete a note (protected)
 
-Using curl or Postman
+🧪 Testing
+We use Jest, Supertest, and MongoDB Memory Server.
 
-# Register a new user
-curl -X POST https://cse341-taskflow-api.onrender.com/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{"name":"John Doe","email":"john@example.com","password":"password123"}'
+Run all tests:
 
-# Login
-curl -X POST https://your-app.onrender.com/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"john@example.com","password":"password123"}'
+bash
+Copiar código
+npm test
+Example output:
 
-# Create a task (with JWT token)
-curl -X POST https://cse341-taskflow-api.onrender.com/tasks \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  -d '{"title":"Complete project","description":"Finish the API documentation","status":"pending"}'
-📦 Dependencies
-Production
-express: Web framework
+bash
+Copiar código
+PASS  tests/projects.test.js
+PASS  tests/notes.test.js
 
-mongoose: MongoDB ODM
+Test Suites: 2 passed, 2 total
+Tests:       8 passed, 8 total
+🌐 Deployment
+The API is deployed on Render:
 
-bcryptjs: Password hashing
+Base URL: https://cse341-taskflow-api.onrender.com
 
-jsonwebtoken: JWT authentication
+Swagger Docs: https://cse341-taskflow-api.onrender.com/api-docs
 
-swagger-ui-express: API documentation
+Health Check: https://cse341-taskflow-api.onrender.com/health
 
-dotenv: Environment variables
-
-cors: Cross-origin resource sharing
-
-Development
-nodemon: Development server with auto-restart
-
-# Video
-https://youtu.be/82-ze4tENMA
-
-🤝 Contributing
-Fork the repository
-
-Create a feature branch (git checkout -b feature/amazing-feature)
-
-Commit your changes (git commit -m 'Add some amazing feature')
-
-Push to the branch (git push origin feature/amazing-feature)
-
-Open a Pull Request
-
-📄 License
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-👥 Author
-Nuno Ferreira - Initial work
-
-🙏 Acknowledgments
-Brigham Young University-Idaho for the project guidelines
-
-MongoDB Atlas for database hosting
-
-Render for deployment platform
+👤 Author
+Nuno – CSE 341 Student
+BYU-Idaho – Backend Development

@@ -1,14 +1,19 @@
+// /server.js
 require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const passport = require('passport');
 const swaggerUi = require('swagger-ui-express');
 const swaggerDocument = require('./swagger/swagger.json');
 const authRoutes = require('./routes/authRoutes');
 const taskRoutes = require('./routes/taskRoutes');
-const projectRoutes = require('./routes/projectRoutes'); // NEW
-const noteRoutes = require('./routes/noteRoutes');       // NEW
+const projectRoutes = require('./routes/projectRoutes');
+const noteRoutes = require('./routes/noteRoutes');
 const errorHandler = require('./middleware/errorHandler');
+
+// Load passport configuration
+require('./config/passport')(passport);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -16,6 +21,7 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use(passport.initialize());
 
 // Health check route
 app.get('/health', (req, res) => {
@@ -33,8 +39,8 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 // Routes
 app.use('/auth', authRoutes);
 app.use('/tasks', taskRoutes);
-app.use('/projects', projectRoutes); // NEW
-app.use('/notes', noteRoutes);       // NEW
+app.use('/projects', projectRoutes);
+app.use('/notes', noteRoutes);
 
 // Root route
 app.get('/', (req, res) => {
@@ -48,29 +54,26 @@ app.get('/', (req, res) => {
 // Error handling middleware
 app.use(errorHandler);
 
-// Connect to MongoDB and start server only if run directly
-if (require.main === module) {
-  mongoose.connect(process.env.MONGODB_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-  })
-    .then(() => {
-      console.log('✅ Connected to MongoDB');
-      app.listen(PORT, () => {
-        console.log(`🚀 Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
-        console.log(`🌐 Swagger docs available at http://localhost:${PORT}/api-docs`);
+// Connect to MongoDB and start server
+mongoose.connect(process.env.MONGODB_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+})
+  .then(() => {
+    console.log('✅ Connected to MongoDB');
+    app.listen(PORT, () => {
+      console.log(`🚀 Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
+      console.log(`🌐 Swagger docs available at http://localhost:${PORT}/api-docs`);
 
-        // Extra info when running on Render
-        if (process.env.RENDER_EXTERNAL_HOSTNAME) {
-          console.log(`🔗 Public URL: https://${process.env.RENDER_EXTERNAL_HOSTNAME}`);
-        }
-      });
-    })
-    .catch(err => {
-      console.error('❌ MongoDB connection error:', err);
-      process.exit(1);
+      // Extra info when running on Render
+      if (process.env.RENDER_EXTERNAL_HOSTNAME) {
+        console.log(`🔗 Public URL: https://${process.env.RENDER_EXTERNAL_HOSTNAME}`);
+      }
     });
-}
+  })
+  .catch(err => {
+    console.error('❌ MongoDB connection error:', err);
+    process.exit(1);
+  });
 
-// Export app (for tests or external use)
 module.exports = app;

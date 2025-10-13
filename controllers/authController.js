@@ -1,11 +1,16 @@
+// /controllers/authController.js
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 
 const signToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: (process.env.JWT_EXPIRES_IN || "30d").trim()
+    expiresIn: (process.env.JWT_EXPIRES_IN || '30d').trim()
   });
 };
+
+// ----------------------------
+// LOCAL AUTHENTICATION
+// ----------------------------
 
 // @desc    Register user
 // @route   POST /auth/register
@@ -14,7 +19,6 @@ exports.register = async (req, res, next) => {
   try {
     const { name, email, password } = req.body;
 
-    // Check if user exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({
@@ -23,12 +27,7 @@ exports.register = async (req, res, next) => {
       });
     }
 
-    const user = await User.create({
-      name,
-      email,
-      password
-    });
-
+    const user = await User.create({ name, email, password });
     const token = signToken(user._id);
 
     res.status(201).json({
@@ -54,7 +53,6 @@ exports.login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
-    // Check if email and password exist
     if (!email || !password) {
       return res.status(400).json({
         status: 'fail',
@@ -62,9 +60,7 @@ exports.login = async (req, res, next) => {
       });
     }
 
-    // Check if user exists and password is correct
     const user = await User.findOne({ email }).select('+password');
-    
     if (!user || !(await user.correctPassword(password, user.password))) {
       return res.status(401).json({
         status: 'fail',
@@ -73,7 +69,6 @@ exports.login = async (req, res, next) => {
     }
 
     const token = signToken(user._id);
-
     res.status(200).json({
       status: 'success',
       token,
@@ -88,4 +83,50 @@ exports.login = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
+};
+
+// ----------------------------
+// GOOGLE OAUTH 2.0 AUTHENTICATION
+// ----------------------------
+
+// @desc    Handle Google OAuth callback
+// @route   GET /auth/google/callback
+// @access  Public (callback from Google)
+exports.oauthCallback = (req, res) => {
+  try {
+    const user = req.user;
+    if (!user) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'OAuth failed: no user returned from Google'
+      });
+    }
+
+    const token = signToken(user._id);
+    res.status(200).json({
+      status: 'success',
+      token,
+      data: {
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email
+        }
+      }
+    });
+  } catch (err) {
+    res.status(500).json({
+      status: 'error',
+      message: 'OAuth callback error'
+    });
+  }
+};
+
+// @desc    OAuth failure route
+// @route   GET /auth/google/failure
+exports.oauthFailure = (req, res) => {
+  res.status(401).json({
+    status: 'fail',
+    message: 'Google OAuth login failed'
+  });
 };

@@ -1,43 +1,52 @@
-// /routes/authRoutes.js
 const express = require('express');
 const passport = require('passport');
-const {
-  register,
-  login,
-  oauthCallback,
-  oauthFailure
-} = require('../controllers/authController');
+const { register, login } = require('../controllers/authController');
 
 const router = express.Router();
 
-// Local authentication
+// Normal registration and login routes
 router.post('/register', register);
 router.post('/login', login);
 
-// ----------------------------
-// Google OAuth 2.0 Authentication
-// ----------------------------
+// --- Google OAuth routes ---
 
-// Step 1 – Redirect user to Google for login
+// 1️⃣ Start Google authentication (asks for email and profile)
 router.get(
   '/google',
-  passport.authenticate('google', {
-    scope: ['profile', 'email'],
-    session: false
-  })
+  passport.authenticate('google', { scope: ['profile', 'email'] })
 );
 
-// Step 2 – Google redirects back to our callback route
+// 2️⃣ Google callback URL (redirects here after login)
 router.get(
   '/google/callback',
-  passport.authenticate('google', {
-    failureRedirect: '/auth/google/failure',
-    session: false
-  }),
-  oauthCallback // handled in authController
+  passport.authenticate('google', { session: false, failureRedirect: '/auth/failure' }),
+  (req, res) => {
+    // If successful, return a JWT token and user info
+    const jwt = require('jsonwebtoken');
+    const token = jwt.sign({ id: req.user._id }, process.env.JWT_SECRET, {
+      expiresIn: (process.env.JWT_EXPIRES_IN || '30d').trim()
+    });
+
+    res.status(200).json({
+      status: 'success',
+      token,
+      data: {
+        user: {
+          id: req.user._id,
+          name: req.user.name,
+          email: req.user.email
+        }
+      }
+    });
+  }
 );
 
-// Optional failure route
-router.get('/google/failure', oauthFailure);
+// 3️⃣ Handle OAuth failure
+router.get('/failure', (req, res) => {
+  res.status(401).json({
+    status: 'fail',
+    message: 'Google Authentication Failed'
+  });
+});
 
 module.exports = router;

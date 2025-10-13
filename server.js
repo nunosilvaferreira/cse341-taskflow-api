@@ -18,12 +18,12 @@ require('./config/passport')(passport);
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
+// --- Middleware ---
 app.use(cors());
 app.use(express.json());
 app.use(passport.initialize());
 
-// Health check route
+// --- Health check route ---
 app.get('/health', (req, res) => {
   res.status(200).json({
     status: 'success',
@@ -33,45 +33,50 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Swagger docs
+// --- Swagger docs ---
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
-// Routes
+// --- Routes ---
 app.use('/auth', authRoutes);
 app.use('/tasks', taskRoutes);
 app.use('/projects', projectRoutes);
 app.use('/notes', noteRoutes);
 
-// Root route
+// --- Root route ---
 app.get('/', (req, res) => {
   res.json({
     message: 'Welcome to TaskFlow API',
     documentation: '/api-docs',
-    health: '/health'
+    health: '/health',
+    googleLogin: '/auth/google'
   });
 });
 
-// Error handling middleware
+// --- Error handling middleware ---
 app.use(errorHandler);
 
-// Connect to MongoDB and start server
-mongoose.connect(process.env.MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
+// --- MongoDB connection and server start ---
+mongoose
+  .connect(process.env.MONGODB_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+  })
   .then(() => {
     console.log('✅ Connected to MongoDB');
     app.listen(PORT, () => {
       console.log(`🚀 Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
       console.log(`🌐 Swagger docs available at http://localhost:${PORT}/api-docs`);
 
-      // Extra info when running on Render
+      // Display OAuth URLs if available
       if (process.env.RENDER_EXTERNAL_HOSTNAME) {
         console.log(`🔗 Public URL: https://${process.env.RENDER_EXTERNAL_HOSTNAME}`);
+        console.log(`🔑 OAuth callback: https://${process.env.RENDER_EXTERNAL_HOSTNAME}/auth/google/callback`);
+      } else {
+        console.log(`🔑 Local OAuth callback: http://localhost:${PORT}/auth/google/callback`);
       }
     });
   })
-  .catch(err => {
+  .catch((err) => {
     console.error('❌ MongoDB connection error:', err);
     process.exit(1);
   });

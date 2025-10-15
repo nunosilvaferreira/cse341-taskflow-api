@@ -10,6 +10,7 @@ const authRoutes = require('./routes/authRoutes');
 const taskRoutes = require('./routes/taskRoutes');
 const projectRoutes = require('./routes/projectRoutes');
 const noteRoutes = require('./routes/noteRoutes');
+const userRoutes = require('./routes/usersRoutes');
 const errorHandler = require('./middleware/errorHandler');
 
 // Load passport configuration
@@ -41,6 +42,7 @@ app.use('/auth', authRoutes);
 app.use('/tasks', taskRoutes);
 app.use('/projects', projectRoutes);
 app.use('/notes', noteRoutes);
+app.use('/users', userRoutes);
 
 // --- Root route ---
 app.get('/', (req, res) => {
@@ -48,37 +50,37 @@ app.get('/', (req, res) => {
     message: 'Welcome to TaskFlow API',
     documentation: '/api-docs',
     health: '/health',
-    googleLogin: '/auth/google/login'
+    googleLogin: '/auth/google'
   });
 });
 
 // --- Error handling middleware ---
 app.use(errorHandler);
 
-// --- MongoDB connection and server start ---
-mongoose
-  .connect(process.env.MONGODB_URI, {
+// --- MongoDB connection & server startup ---
+if (process.env.NODE_ENV !== 'test') {
+  mongoose.connect(process.env.MONGODB_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true
   })
-  .then(() => {
-    console.log('✅ Connected to MongoDB');
-    app.listen(PORT, () => {
-      console.log(`🚀 Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
-      console.log(`🌐 Swagger docs available at http://localhost:${PORT}/api-docs`);
+    .then(() => {
+      console.log('✅ Connected to MongoDB');
+      app.listen(PORT, () => {
+        console.log(`🚀 Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
+        console.log(`🌐 Swagger docs available at http://localhost:${PORT}/api-docs`);
 
-      // Display OAuth URLs if available
-      if (process.env.RENDER_EXTERNAL_HOSTNAME) {
-        console.log(`🔗 Public URL: https://${process.env.RENDER_EXTERNAL_HOSTNAME}`);
-        console.log(`🔑 OAuth callback: https://${process.env.RENDER_EXTERNAL_HOSTNAME}/auth/google/callback`);
-      } else {
-        console.log(`🔑 Local OAuth callback: http://localhost:${PORT}/auth/google/callback`);
-      }
+        if (process.env.RENDER_EXTERNAL_HOSTNAME) {
+          console.log(`🔗 Public URL: https://${process.env.RENDER_EXTERNAL_HOSTNAME}`);
+          console.log(`🔑 OAuth callback: https://${process.env.RENDER_EXTERNAL_HOSTNAME}/auth/google/callback`);
+        } else {
+          console.log(`🔑 Local OAuth callback: http://localhost:${PORT}/auth/google/callback`);
+        }
+      });
+    })
+    .catch(err => {
+      console.error('❌ MongoDB connection error:', err);
+      process.exit(1);
     });
-  })
-  .catch((err) => {
-    console.error('❌ MongoDB connection error:', err);
-    process.exit(1);
-  });
+}
 
 module.exports = app;

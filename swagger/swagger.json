@@ -2,7 +2,7 @@
   "openapi": "3.0.0",
   "info": {
     "title": "TaskFlow API",
-    "description": "Personal Task Management System API",
+    "description": "Personal Task Management System API with OAuth and JWT authentication.",
     "version": "1.0.0"
   },
   "servers": [
@@ -55,7 +55,7 @@
     "/auth/login": {
       "post": {
         "tags": ["Authentication"],
-        "summary": "Login user",
+        "summary": "Login user and get a JWT token",
         "requestBody": {
           "required": true,
           "content": {
@@ -78,6 +78,57 @@
         }
       }
     },
+    "/auth/google": {
+      "get": {
+        "tags": ["Authentication"],
+        "summary": "Authenticate using Google OAuth 2.0",
+        "description": "Redirects to Google login page for OAuth.",
+        "responses": {
+          "302": { "description": "Redirect to Google login" }
+        }
+      }
+    },
+    "/auth/google/callback": {
+      "get": {
+        "tags": ["Authentication"],
+        "summary": "Handle Google OAuth callback",
+        "description": "Callback endpoint that issues a JWT after Google login.",
+        "responses": {
+          "200": { "description": "Login successful, JWT token returned" },
+          "401": { "description": "Unauthorized - OAuth failed" }
+        }
+      }
+    },
+
+    "/users": {
+      "get": {
+        "tags": ["Users"],
+        "summary": "Get all users (protected)",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Users retrieved successfully" },
+          "401": { "description": "Unauthorized - invalid token" },
+          "500": { "description": "Internal server error" }
+        }
+      }
+    },
+    "/users/{id}": {
+      "get": {
+        "tags": ["Users"],
+        "summary": "Get a single user by ID (protected)",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "User retrieved successfully" },
+          "404": { "description": "User not found" },
+          "401": { "description": "Unauthorized - invalid token" },
+          "500": { "description": "Internal server error" }
+        }
+      }
+    },
+
     "/tasks": {
       "get": {
         "tags": ["Tasks"],
@@ -142,7 +193,6 @@
           { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
         ],
         "requestBody": {
-          "required": true,
           "content": {
             "application/json": {
               "schema": {
@@ -181,6 +231,7 @@
         }
       }
     },
+
     "/projects": {
       "get": {
         "tags": ["Projects"],
@@ -285,6 +336,7 @@
         }
       }
     },
+
     "/notes": {
       "get": {
         "tags": ["Notes"],

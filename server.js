@@ -48,7 +48,7 @@ app.get('/', (req, res) => {
     message: 'Welcome to TaskFlow API',
     documentation: '/api-docs',
     health: '/health',
-    googleLogin: '/auth/google'
+    googleLogin: '/auth/google/login'
   });
 });
 
